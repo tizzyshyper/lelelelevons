@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LE / LEVONI</title>
+  <style>
+    :root { --duration: 1400ms; }
+    body, html {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100dvh;
+      overflow: hidden;
+      touch-action: manipulation;
+      cursor: crosshair;
+    }
+    .le {
+      position: absolute;
+      transform: translate(-50%, -50%) scale(0.8);
+      font-weight: 900;
+      font-size: clamp(28px, 6vw, 64px);
+      letter-spacing: 0.04em;
+      user-select: none;
+      pointer-events: none;
+      text-shadow:
+        0 0 8px rgba(255,255,255,.15),
+        0 0 24px rgba(255,255,255,.08);
+      opacity: 0;
+      animation: pop var(--duration) ease-out forwards;
+      white-space: nowrap;
+    }
+    @keyframes pop {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); filter: blur(2px); }
+      12%  { opacity: 1; transform: translate(-50%, -50%) scale(1);   filter: blur(0); }
+      80%  { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -60%) scale(1.05); }
+    }
+    .levoni {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 500ms ease, visibility 0s linear 500ms;
+    }
+    .levoni.show {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 600ms ease;
+    }
+    .levoni h1 {
+      margin: 0;
+      font-size: clamp(42px, 12vw, 200px);
+      line-height: 1;
+      letter-spacing: .06em;
+      text-align: center;
+      font-weight: 1000;
+      text-shadow:
+        0 0 10px rgba(255,255,255,.2),
+        0 0 40px rgba(255,255,255,.1);
+    }
+    .hint {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #888;
+      font-size: clamp(14px, 2.8vw, 18px);
+      pointer-events: none;
+      animation: hintfade 2.2s ease-out 1s forwards;
+    }
+    @keyframes hintfade {
+      to { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="hint" id="hint">Tocca o clicca ovunque</div>
+  </div>
+
+  <div class="levoni" id="levoni">
+    <h1>LEVONI</h1>
+  </div>
+
+  <audio id="fartSound" src="scorreggia.mp3" preload="auto"></audio>
+
+  <script>
+    (function () {
+      const stage   = document.getElementById('stage');
+      const hint    = document.getElementById('hint');
+      const overlay = document.getElementById('levoni');
+      const fart    = document.getElementById('fartSound');
+
+      let presses = 0;
+      const threshold = randInt(7, 24); 
+
+      stage.addEventListener('pointerdown', (ev) => {
+        if (overlay.classList.contains('show')) return;
+        if (hint) hint.remove();
+
+        const rect = stage.getBoundingClientRect();
+        const x = ev.clientX - rect.left;
+        const y = ev.clientY - rect.top;
+
+        spawnLE(x, y);
+
+        presses += 1;
+        if (presses >= threshold) {
+          setTimeout(() => {
+            overlay.classList.add('show');
+            fart.currentTime = 0;
+            fart.play();
+          }, 220);
+        }
+      });
+
+      function spawnLE(x, y) {
+        const el = document.createElement('div');
+        el.className = 'le';
+        el.textContent = 'LE';
+        const hue = Math.floor(Math.random() * 360);
+        const sat = randInt(70, 100);
+        const light = randInt(55, 70);
+        el.style.color = `hsl(${hue} ${sat}% ${light}%)`;
+        el.style.left = `${x}px`;
+        el.style.top  = `${y}px`;
+        stage.appendChild(el);
+        el.addEventListener('animationend', () => el.remove(), { once: true });
+      }
+
+      function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+    })();
+  </script>
+</body>
+</html>
